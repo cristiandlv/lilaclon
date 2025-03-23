@@ -16,15 +16,15 @@ const Landing: React.FC = () => {
       </video>
 
       {/* desenfocar el fondo loco */}
-      <div className="absolute inset-1 backdrop-blur-3xl"></div>
+      <div className="absolute inset-0 backdrop-blur-3xl"></div>
 
-      <div className="relative w-4/5 h-4/5 flex items-center justify-center">
+      <div className="relative w-4/5 h-4/5 flex items-center justify-center shadow-md">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover rounded-lg shadow-2xl"
+          className="w-full h-full object-cover rounded-lg shadow-2xl "
         >
           <source src="/video/products.mp4" type="video/mp4" />
           Tu navegador no soporta videos en HTML5.
