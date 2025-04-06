@@ -66,14 +66,47 @@ const Register = () => {
       return;
     }
 
+    const newUser = {
+      name: name,
+      email: email,
+      password: password,
+      address: address,
+      phone: phone
+      
+    };
+
+    async function register() {
+      try {
+        const response = await fetch("http://localhost:3000/users/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUser),
+        });
+    
+        if (!response.ok) {
+          throw new Error("Error al registrar el usuario");
+        }
+    
+        setSuccessMessage("¡Usuario registrado!");
+        setName("");
+        setEmail("");
+        setAddress("");
+        setPhone("");
+        setPassword("");
+        setErrors({});
+    
+      } catch (err) {
+        console.error("Error en el registro:", err);
+        setSuccessMessage(""); // Aseguramos que no se muestre el mensaje de éxito
+        setErrors({ general: "Hubo un problema con el registro. Intenta nuevamente." });
+      }
+    }
+    register();
+
+
     // Si no hay errores, mostrar mensaje de éxito y limpiar el formulario
-    setSuccessMessage("¡Usuario registrado!");
-    setName("");
-    setEmail("");
-    setAddress("");
-    setPhone("");
-    setPassword("");
-    setErrors({});
   };
 
   return (

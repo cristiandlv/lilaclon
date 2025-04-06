@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import NavBar from "@/components/navBar/navBar";
 import Footer from "@/components/footer/footer";
+import { AuthProvider } from "./contexts/AuthContext";
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -30,9 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <AuthProvider>
         <NavBar />
         <main className="flex-grow">{children}</main>
         <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

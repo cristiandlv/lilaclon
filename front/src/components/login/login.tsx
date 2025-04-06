@@ -1,131 +1,122 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../app/contexts/AuthContext"; // Usamos el contexto
 
 const Login = () => {
-  // Estados para los campos del formulario
+  const router = useRouter();
+  const { setIsLoggedIn, setUserId } = useAuth(); // Extraemos los valores del contexto
+
+  // Estados
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // Error para la interfaz
+  const [loading, setLoading] = useState(false);
 
-  // Estados para los errores y el mensaje de éxito
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [successMessage, setSuccessMessage] = useState("");
-
-  // Función para validar en tiempo real
-  const validateField = (field: string, value: string) => {
-    let error = "";
-
-    switch (field) {
-      case "email":
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = "Ingresa un email válido.";
-        }
-        break;
-      case "password":
-        if (value.length < 6) {
-          error = "La contraseña debe tener al menos 6 caracteres.";
-        }
-        break;
-      default:
-        break;
+  // Si ya hay un token, redirigir automáticamente
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    if (token && userId) {
+      router.replace(`/dashboard/${userId}`);
     }
+  }, [router]);
 
-    setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
-  };
-
-  // Función para manejar el envío del formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  // Manejo del login
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(""); // Limpiar mensajes previos
+    setLoading(true);
 
-    // Validar todos los campos antes de enviar
-    validateField("email", email);
-    validateField("password", password);
+    try {
+      const response = await fetch("http://localhost:3000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Verificar si hay errores
-    if (Object.values(errors).some((error) => error)) {
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage("Hubo un problema al iniciar sesión. Por favor, revisa tus credenciales.");
+        return;
+      }
+
+      // Guardar token y ID de usuario en el localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("userName", data.user.name); // Guardar el nombre
+      localStorage.setItem("userEmail", data.user.email); // Guardar el email
+      localStorage.setItem("userPhone",data.user.phone);
+      localStorage.setItem("userAddress",data.user.address);
+
+      
+
+
+
+      // Actualizar el contexto de autenticación
+      setIsLoggedIn(true);
+      setUserId(data.user.id);
+
+      // Redirigir a /dashboard/{userId}
+      router.replace(`/dashboard/${data.user.id}`);
+    } catch (err: any) {
+      setErrorMessage("Hubo un problema al iniciar sesión. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
     }
-
-    // Simulación de inicio de sesión exitoso
-    setSuccessMessage("¡Inicio de sesión exitoso!");
-    setEmail("");
-    setPassword("");
-    setErrors({});
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center bg-gray-100 pt-20">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
 
-        {/* Mensaje de éxito */}
-        {successMessage && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">
-            {successMessage}
+        {/* Mostrar mensaje de error si existe */}
+        {errorMessage && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-center">
+            {errorMessage}
           </div>
         )}
 
-        {/* Campo Email */}
+        {/* Email */}
         <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 mb-2">
-            Email
-          </label>
+          <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
           <input
             type="email"
             id="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              validateField("email", e.target.value);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Ingresa tu email"
           />
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-          )}
         </div>
 
-        {/* Campo Contraseña */}
+        {/* Contraseña */}
         <div className="mb-6">
-          <label htmlFor="password" className="block text-gray-700 mb-2">
-            Contraseña
-          </label>
+          <label htmlFor="password" className="block text-gray-700 mb-2">Contraseña</label>
           <input
             type="password"
             id="password"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              validateField("password", e.target.value);
-            }}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Ingresa tu contraseña"
           />
-          {errors.password && (
-            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-          )}
         </div>
 
-        {/* Botón de inicio de sesión */}
+        {/* Botón de login */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+          disabled={loading}
+          className={`w-full py-2 px-4 rounded-lg text-white ${loading ? "bg-gray-500" : "bg-blue-500 hover:bg-blue-600"} transition-colors`}
         >
-          Iniciar Sesión
+          {loading ? "Cargando..." : "Iniciar Sesión"}
         </button>
-
-        {/* Enlace para registrarse */}
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
-            ¿No tienes una cuenta?{" "}
-            <a href="/register" className="text-blue-500 hover:underline">
-              Regístrate
-            </a>
-          </p>
-        </div>
       </form>
     </div>
   );

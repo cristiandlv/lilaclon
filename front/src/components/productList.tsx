@@ -1,27 +1,3 @@
-
-
-// import { notProducts } from "../Helpers/products"; 
-
-// const ProductList = () => {
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-//       {notProducts.map((product) => (
-//         <Card 
-//           key={product.id}
-//           id={product.id} 
-//           title={product.name}
-//           description={product.description}
-//           price={product.price}
-//           image={product.image}
-//           categoryId={product.categoryId}
-//         />
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default ProductList;
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -36,7 +12,11 @@ type Product = {
   categoryId: number;
 };
 
-export default function ProductList() {
+type ProductListProps = {
+  limit?: number; // Prop opcional para limitar la cantidad de productos a mostrar
+};
+
+export default function ProductList({ limit }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,9 +42,12 @@ export default function ProductList() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
   if (products.length === 0) return <p className="text-center text-gray-500">No hay productos disponibles.</p>;
 
+  // Aplicar el límite si existe
+  const displayedProducts = limit ? products.slice(0, limit) : products;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-      {products.map((product) => (
+      {displayedProducts.map((product) => (
         <Card
           key={product.id}
           id={product.id}
